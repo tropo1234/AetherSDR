@@ -2775,9 +2775,14 @@ void MainWindow::sendPanDimensionsToRadio(const QString& panId,
 
     const int xpix = panXpixelsFor(sw);
     const int ypix = panYpixelsFor(sw);
-    m_radioModel.sendCommand(
-        QString("display pan set %1 xpixels=%2 ypixels=%3")
-            .arg(panId).arg(xpix).arg(ypix));
+    // A backend that computes its own spectrum takes the width through the
+    // seam; the Flex wire text would only be dropped for want of a command
+    // plane.
+    if (!m_radioModel.requestLocalPanPixelWidth(panId, panLocalSpectrumPointsFor(sw))) {
+        m_radioModel.sendCommand(
+            QString("display pan set %1 xpixels=%2 ypixels=%3")
+                .arg(panId).arg(xpix).arg(ypix));
+    }
 
     // Arm the DSS settle gate now, before the radio echo switches the local
     // decoder. The stream keeps decoding with the old y_pixels until the echo,
